@@ -1,0 +1,1538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Complio — Interactive Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0A1F44;
+    --navy-2: #0F2A5C;
+    --navy-deep: #061436;
+    --ice: #CADCFC;
+    --ice-light: #E8EFFB;
+    --ice-bg: #F4F7FD;
+    --white: #FFFFFF;
+    --accent: #F5A623;
+    --accent-soft: #FFF1D6;
+    --muted: #8896B3;
+    --text-muted: #5C6B8C;
+    --border: #E1E7F2;
+    --success: #2A9D6E;
+    --success-bg: #E5F4ED;
+    --danger: #D63B3B;
+    --danger-bg: #FDECEC;
+    --amber: #E08200;
+    --amber-bg: #FFF4E0;
+    --shadow-sm: 0 1px 2px rgba(10, 31, 68, 0.06);
+    --shadow: 0 4px 16px rgba(10, 31, 68, 0.08);
+    --shadow-lg: 0 12px 40px rgba(10, 31, 68, 0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--ice-bg);
+    color: var(--navy);
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+  }
+  .serif { font-family: 'Fraunces', Georgia, serif; font-weight: 500; }
+
+  /* ===== TOP CONTROL BAR (prototype-only chrome) ===== */
+  .proto-bar {
+    background: var(--navy-deep);
+    color: var(--white);
+    padding: 10px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .proto-bar .left { display: flex; align-items: center; gap: 16px; }
+  .proto-bar .badge {
+    background: var(--accent);
+    color: var(--navy-deep);
+    padding: 3px 10px;
+    border-radius: 3px;
+    font-weight: 700;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+  }
+  .proto-bar .nav { display: flex; gap: 4px; }
+  .proto-bar .nav button {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.15);
+    color: var(--white);
+    padding: 6px 12px;
+    font-size: 11px;
+    font-family: inherit;
+    cursor: pointer;
+    border-radius: 4px;
+    letter-spacing: 0.04em;
+    transition: all 0.15s;
+  }
+  .proto-bar .nav button:hover { background: rgba(255,255,255,0.08); }
+  .proto-bar .nav button.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--navy-deep);
+    font-weight: 600;
+  }
+  .proto-bar .mode-toggle {
+    display: flex;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .proto-bar .mode-toggle button {
+    background: transparent;
+    border: none;
+    color: var(--white);
+    padding: 5px 12px;
+    font-size: 10px;
+    font-family: inherit;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+  .proto-bar .mode-toggle button.active {
+    background: var(--accent);
+    color: var(--navy-deep);
+  }
+
+  /* ===== APP CHROME ===== */
+  .app { max-width: 1280px; margin: 0 auto; padding: 0; }
+  .topnav {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark {
+    width: 6px;
+    height: 22px;
+    background: var(--accent);
+  }
+  .brand-name {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .brand-name span { color: var(--accent); }
+  .topnav-right { display: flex; align-items: center; gap: 20px; }
+  .agency-badge {
+    font-size: 12px;
+    color: var(--text-muted);
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--ice-bg);
+  }
+  .avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--navy);
+    color: var(--white);
+    display: grid;
+    place-items: center;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen { display: none; padding: 32px; animation: fadeIn 0.3s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ===== SCREEN 1: LOGIN ===== */
+  #screen-login {
+    min-height: calc(100vh - 50px);
+    display: none;
+    place-items: center;
+    background: linear-gradient(135deg, var(--navy-deep) 0%, var(--navy) 60%, var(--navy-2) 100%);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  #screen-login.active { display: grid; }
+  #screen-login::before {
+    content: '';
+    position: absolute;
+    top: -50%; left: -10%;
+    width: 60%; height: 100%;
+    background: radial-gradient(circle, rgba(245,166,35,0.08) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  .login-card {
+    background: var(--white);
+    border-radius: 8px;
+    padding: 48px 56px;
+    width: 440px;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    z-index: 1;
+  }
+  .login-mark { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .login-mark .brand-mark { height: 28px; }
+  .login-mark .brand-name { font-size: 24px; }
+  .login-tag {
+    color: var(--text-muted);
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    margin-bottom: 36px;
+  }
+  .login-welcome {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    margin-bottom: 4px;
+    color: var(--navy);
+  }
+  .login-welcome em { color: var(--accent); font-style: italic; }
+  .login-sub {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+  }
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    font-weight: 600;
+  }
+  .field input {
+    width: 100%;
+    padding: 11px 14px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-size: 14px;
+    font-family: inherit;
+    background: var(--ice-bg);
+    color: var(--navy);
+  }
+  .field input:focus { outline: none; border-color: var(--accent); background: var(--white); }
+  .btn-primary {
+    width: 100%;
+    padding: 13px;
+    background: var(--navy);
+    color: var(--white);
+    border: none;
+    border-radius: 5px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: all 0.15s;
+    margin-top: 8px;
+  }
+  .btn-primary:hover { background: var(--navy-2); transform: translateY(-1px); }
+  .btn-primary.accent { background: var(--accent); color: var(--navy-deep); }
+  .btn-primary.accent:hover { background: #E89512; }
+
+  /* ===== SCREEN 2: DASHBOARD ===== */
+  .page-head {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .page-title {
+    font-family: 'Fraunces', serif;
+    font-size: 32px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .page-sub {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-top: 4px;
+  }
+  .btn-secondary {
+    background: var(--white);
+    border: 1px solid var(--navy);
+    color: var(--navy);
+    padding: 10px 18px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-secondary:hover { background: var(--navy); color: var(--white); }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .stat-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px 22px;
+    position: relative;
+  }
+  .stat-card.urgent { background: var(--navy); color: var(--white); border-color: var(--navy); }
+  .stat-card.urgent::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+    border-radius: 8px 8px 0 0;
+  }
+  .stat-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .stat-card.urgent .stat-label { color: var(--accent); }
+  .stat-number {
+    font-family: 'Fraunces', serif;
+    font-size: 42px;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .stat-hint {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 8px;
+  }
+  .stat-card.urgent .stat-hint { color: var(--ice); }
+
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--white);
+    padding: 12px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px 8px 0 0;
+    border-bottom: none;
+  }
+  .toolbar .filters { display: flex; gap: 8px; }
+  .pill {
+    padding: 6px 12px;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--white);
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .pill.active { background: var(--navy); color: var(--white); border-color: var(--navy); }
+  .search {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    font-family: inherit;
+    font-size: 12px;
+    width: 220px;
+  }
+
+  .table-wrap {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: var(--ice-light); }
+  th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    font-weight: 600;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 14px 16px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+  tbody tr {
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  tbody tr:hover { background: var(--ice-bg); }
+  tbody tr:last-child td { border-bottom: none; }
+  .addr { font-weight: 600; color: var(--navy); }
+  .landlord { color: var(--text-muted); font-size: 12px; margin-top: 2px; }
+
+  .status-row { display: flex; gap: 5px; }
+  .dot {
+    width: 12px; height: 12px;
+    border-radius: 3px;
+    position: relative;
+  }
+  .dot.green { background: var(--success); }
+  .dot.amber { background: var(--amber); }
+  .dot.red {
+    background: var(--danger);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  .dot.gray { background: #D6DCE8; }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(214, 59, 59, 0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(214, 59, 59, 0); }
+  }
+  .urgency-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .urgency-badge.high { background: var(--danger-bg); color: var(--danger); }
+  .urgency-badge.med { background: var(--amber-bg); color: var(--amber); }
+  .urgency-badge.low { background: var(--success-bg); color: var(--success); }
+
+  /* ===== SCREEN 3: PROPERTY DETAIL ===== */
+  .breadcrumb {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .breadcrumb a { color: var(--text-muted); text-decoration: none; cursor: pointer; }
+  .breadcrumb a:hover { color: var(--accent); }
+
+  .prop-header {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+  }
+  .prop-header .left h2 {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .prop-header .meta {
+    display: flex;
+    gap: 24px;
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 12px;
+  }
+  .prop-header .meta strong { color: var(--navy); display: block; font-size: 14px; font-weight: 600; margin-top: 2px; }
+  .score-circle {
+    width: 90px; height: 90px;
+    border-radius: 50%;
+    background: conic-gradient(var(--danger) 0% 33%, var(--border) 33% 100%);
+    display: grid;
+    place-items: center;
+    position: relative;
+  }
+  .score-circle::before {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    background: var(--white);
+    border-radius: 50%;
+  }
+  .score-inner { position: relative; z-index: 1; text-align: center; }
+  .score-num { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 600; color: var(--danger); }
+  .score-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); }
+
+  .compliance-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .comp-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .comp-card.danger { border-left: 3px solid var(--danger); }
+  .comp-card.amber { border-left: 3px solid var(--amber); }
+  .comp-card.success { border-left: 3px solid var(--success); }
+  .comp-info h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+  .comp-info .expiry { font-size: 12px; color: var(--text-muted); }
+  .comp-info .expiry.bad { color: var(--danger); font-weight: 600; }
+  .comp-info .expiry.warn { color: var(--amber); font-weight: 600; }
+  .comp-action {
+    background: var(--accent);
+    color: var(--navy-deep);
+    border: none;
+    padding: 7px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .comp-action.ghost {
+    background: var(--ice-light);
+    color: var(--navy);
+  }
+
+  /* ===== SCREEN 4: UPLOAD ===== */
+  .upload-zone {
+    background: var(--white);
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 60px 40px;
+    text-align: center;
+    transition: all 0.2s;
+    cursor: pointer;
+    margin-bottom: 24px;
+  }
+  .upload-zone.dragover { border-color: var(--accent); background: var(--accent-soft); }
+  .upload-icon {
+    width: 56px; height: 56px;
+    background: var(--ice-light);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 16px;
+    font-size: 24px;
+    color: var(--navy);
+  }
+  .upload-zone h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+  .upload-zone p { color: var(--text-muted); font-size: 13px; }
+
+  .processing-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+  }
+  .proc-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+  .proc-icon {
+    width: 44px; height: 44px;
+    background: var(--ice-light);
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    color: var(--navy);
+    font-weight: 700;
+    font-size: 11px;
+  }
+  .proc-name { font-weight: 600; font-size: 14px; }
+  .proc-status { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+  .proc-status .live-dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: blink 1s infinite;
+  }
+  @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  .proc-steps { display: flex; flex-direction: column; gap: 12px; margin: 18px 0; }
+  .proc-step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--border);
+    opacity: 0.3;
+    transition: opacity 0.3s;
+  }
+  .proc-step:last-child { border-bottom: none; }
+  .proc-step.done { opacity: 1; }
+  .proc-step.active { opacity: 1; }
+  .proc-step .check {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid var(--border);
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .proc-step.done .check { background: var(--success); border-color: var(--success); color: var(--white); }
+  .proc-step.active .check {
+    border-color: var(--accent);
+    color: var(--accent);
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .proc-step .label { font-size: 13px; }
+  .proc-step .time { margin-left: auto; font-size: 11px; color: var(--text-muted); }
+
+  .extracted {
+    background: var(--success-bg);
+    border: 1px solid var(--success);
+    border-radius: 6px;
+    padding: 18px 22px;
+    margin-top: 18px;
+    display: none;
+  }
+  .extracted.visible { display: block; animation: fadeIn 0.4s; }
+  .extracted h4 {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--success);
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .ext-fields {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .ext-field label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    display: block;
+    margin-bottom: 2px;
+  }
+  .ext-field .val { font-size: 14px; font-weight: 600; color: var(--navy); }
+
+  /* ===== SCREEN 5: DOCUMENT GENERATION ===== */
+  .gen-layout {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 24px;
+  }
+  .gen-side {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .gen-side h4 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    font-weight: 600;
+  }
+  .gen-list { display: flex; flex-direction: column; gap: 6px; }
+  .gen-item {
+    padding: 10px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.15s;
+  }
+  .gen-item:hover { background: var(--ice-bg); }
+  .gen-item.active { background: var(--navy); color: var(--white); }
+  .gen-item .dot { width: 8px; height: 8px; flex-shrink: 0; }
+
+  .letter-preview {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 48px 56px;
+    font-family: 'Inter', sans-serif;
+    min-height: 600px;
+    line-height: 1.65;
+    font-size: 13px;
+    position: relative;
+  }
+  .letter-preview .stamp {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: var(--accent);
+    color: var(--navy-deep);
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+  .letter-preview h1 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--navy);
+  }
+  .letter-preview .date { color: var(--text-muted); margin-bottom: 20px; }
+  .letter-preview p { margin-bottom: 14px; }
+  .letter-preview .highlight {
+    background: var(--accent-soft);
+    padding: 1px 4px;
+    border-radius: 2px;
+    font-weight: 600;
+  }
+  .letter-actions {
+    margin-top: 24px;
+    display: flex;
+    gap: 12px;
+  }
+
+  /* ===== SCREEN 6: LANDLORD REPORT ===== */
+  .ll-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+  }
+  .ll-list {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .ll-item {
+    padding: 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-bottom: 6px;
+    transition: all 0.15s;
+  }
+  .ll-item:hover { background: var(--ice-bg); }
+  .ll-item.active { background: var(--navy); color: var(--white); }
+  .ll-item .ll-name { font-weight: 600; font-size: 14px; }
+  .ll-item .ll-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+  .ll-item.active .ll-meta { color: var(--ice); }
+
+  .ll-detail {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 28px 32px;
+  }
+  .ll-summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .ll-name-big { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 500; }
+  .ll-name-sub { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
+  .ll-status-summary {
+    display: flex;
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .ll-status-pill {
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .ll-status-pill.action { background: var(--danger-bg); color: var(--danger); }
+  .ll-status-pill.warn { background: var(--amber-bg); color: var(--amber); }
+  .ll-status-pill.clear { background: var(--success-bg); color: var(--success); }
+
+  .ll-prop-list { margin-bottom: 24px; }
+  .ll-prop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .ll-prop:last-child { border-bottom: none; }
+  .ll-prop-addr { font-weight: 600; font-size: 13px; }
+  .ll-prop-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+  .send-block {
+    background: var(--ice-bg);
+    border-radius: 6px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .send-block .last-sent { font-size: 12px; color: var(--text-muted); }
+  .send-block .last-sent strong { color: var(--navy); display: block; font-size: 14px; margin-top: 2px; }
+
+  /* helper text below dashboard */
+  .footer-note {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 11px;
+    padding: 32px 16px 16px;
+    letter-spacing: 0.05em;
+  }
+  .footer-note strong { color: var(--navy); }
+</style>
+</head>
+<body>
+
+<!-- PROTOTYPE CONTROL BAR -->
+<div class="proto-bar">
+  <div class="left">
+    <span class="badge">PROTOTYPE</span>
+    <span style="opacity: 0.7;">Use top buttons to walk through the demo →</span>
+  </div>
+  <div class="nav">
+    <button onclick="show('login')" id="b-login">1. Login</button>
+    <button onclick="show('dash')" id="b-dash" class="active">2. Dashboard</button>
+    <button onclick="show('prop')" id="b-prop">3. Property</button>
+    <button onclick="show('upload')" id="b-upload">4. Upload</button>
+    <button onclick="show('gen')" id="b-gen">5. Generate Doc</button>
+    <button onclick="show('ll')" id="b-ll">6. Landlord Report</button>
+  </div>
+  <div class="mode-toggle">
+    <button class="active" onclick="setMode('uk', this)">UK</button>
+    <button onclick="setMode('fl', this)">FL</button>
+  </div>
+</div>
+
+<!-- ===== SCREEN 1: LOGIN ===== -->
+<div id="screen-login" class="screen">
+  <div class="login-card">
+    <div class="login-mark">
+      <div class="brand-mark"></div>
+      <div class="brand-name">Compl<span>io</span></div>
+    </div>
+    <div class="login-tag">Compliance, handled.</div>
+
+    <div class="login-welcome">Welcome back, <em id="login-agency">Birmingham Lettings</em></div>
+    <div class="login-sub">Sign in to manage your portfolio.</div>
+
+    <div class="field">
+      <label>Email</label>
+      <input type="email" value="manager@birminghamlettings.co.uk">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" value="••••••••••••">
+    </div>
+    <button class="btn-primary" onclick="show('dash')">Sign in</button>
+  </div>
+</div>
+
+<!-- ===== APP CHROME (screens 2-6) ===== -->
+<div id="app-wrap">
+  <div class="topnav">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div class="brand-name">Compl<span>io</span></div>
+    </div>
+    <div class="topnav-right">
+      <div class="agency-badge" id="agency-badge">Birmingham Lettings · 87 properties</div>
+      <div class="avatar">SP</div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: DASHBOARD -->
+  <div id="screen-dash" class="screen active app">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Portfolio compliance</div>
+        <div class="page-sub" id="dash-sub">Updated 4 minutes ago · 6 cert types tracked · Across 87 properties</div>
+      </div>
+      <button class="btn-secondary">+ Add property</button>
+    </div>
+
+    <div class="stat-grid">
+      <div class="stat-card urgent">
+        <div class="stat-label">Urgent</div>
+        <div class="stat-number">3</div>
+        <div class="stat-hint">Expired or in breach</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Expiring soon</div>
+        <div class="stat-number" style="color: var(--amber);">11</div>
+        <div class="stat-hint">Within 60 days</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Compliant</div>
+        <div class="stat-number" style="color: var(--success);">73</div>
+        <div class="stat-hint">All clear</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total</div>
+        <div class="stat-number">87</div>
+        <div class="stat-hint">Properties tracked</div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="filters">
+        <button class="pill active">All</button>
+        <button class="pill">Urgent</button>
+        <button class="pill">Expiring</button>
+        <button class="pill">By landlord</button>
+      </div>
+      <input class="search" type="text" placeholder="Search address or landlord...">
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Property</th>
+            <th id="cert-headers">Gas · EPC · EICR · DPS · RTR · RRA</th>
+            <th>Urgency</th>
+            <th style="text-align: right;">Last update</th>
+          </tr>
+        </thead>
+        <tbody id="prop-rows">
+          <tr onclick="openProp()">
+            <td>
+              <div class="addr">23 Maple Avenue, B14 7QP</div>
+              <div class="landlord">Mrs. P. Sharma · Birmingham</div>
+            </td>
+            <td>
+              <div class="status-row">
+                <div class="dot red" title="Gas Safety EXPIRED"></div>
+                <div class="dot amber" title="EPC expiring"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+              </div>
+            </td>
+            <td><span class="urgency-badge high">Gas expired 14 days</span></td>
+            <td style="text-align: right; color: var(--text-muted);">2 hr ago</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="addr">8 Edgbaston Park Road, B15 2RJ</div>
+              <div class="landlord">Mr. R. Patel · Edgbaston</div>
+            </td>
+            <td>
+              <div class="status-row">
+                <div class="dot green"></div>
+                <div class="dot red"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot amber"></div>
+                <div class="dot green"></div>
+              </div>
+            </td>
+            <td><span class="urgency-badge high">EPC expired 3 days</span></td>
+            <td style="text-align: right; color: var(--text-muted);">Yesterday</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="addr">Flat 14, Centenary Plaza, B1 1TR</div>
+              <div class="landlord">Cromwell Holdings Ltd</div>
+            </td>
+            <td>
+              <div class="status-row">
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot red"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+              </div>
+            </td>
+            <td><span class="urgency-badge high">EICR expired today</span></td>
+            <td style="text-align: right; color: var(--text-muted);">3 days ago</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="addr">112 Bristol Road South, B31 2NL</div>
+              <div class="landlord">Mr. & Mrs. Khan · Northfield</div>
+            </td>
+            <td>
+              <div class="status-row">
+                <div class="dot amber"></div>
+                <div class="dot green"></div>
+                <div class="dot amber"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+              </div>
+            </td>
+            <td><span class="urgency-badge med">Gas due in 18 days</span></td>
+            <td style="text-align: right; color: var(--text-muted);">1 wk ago</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="addr">47 Wake Green Road, B13 9PA</div>
+              <div class="landlord">Mrs. P. Sharma · Birmingham</div>
+            </td>
+            <td>
+              <div class="status-row">
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+              </div>
+            </td>
+            <td><span class="urgency-badge low">All clear</span></td>
+            <td style="text-align: right; color: var(--text-muted);">2 wk ago</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="addr">26 Stratford Road, B11 1AA</div>
+              <div class="landlord">Mr. J. Williams · Sparkbrook</div>
+            </td>
+            <td>
+              <div class="status-row">
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+              </div>
+            </td>
+            <td><span class="urgency-badge low">All clear</span></td>
+            <td style="text-align: right; color: var(--text-muted);">4 days ago</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="addr">5 Selly Park Road, B29 7HX</div>
+              <div class="landlord">Mr. A. Ahmed · Selly Park</div>
+            </td>
+            <td>
+              <div class="status-row">
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot amber"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+              </div>
+            </td>
+            <td><span class="urgency-badge med">DPS expiring soon</span></td>
+            <td style="text-align: right; color: var(--text-muted);">5 days ago</td>
+          </tr>
+          <tr>
+            <td>
+              <div class="addr">19 Moseley Wake Green, B13 9QF</div>
+              <div class="landlord">Hawthorne Estates</div>
+            </td>
+            <td>
+              <div class="status-row">
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+              </div>
+            </td>
+            <td><span class="urgency-badge low">All clear</span></td>
+            <td style="text-align: right; color: var(--text-muted);">1 wk ago</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="footer-note">
+      Click any property to see detail · Try <strong>23 Maple Avenue</strong> for the expired-cert flow
+    </div>
+  </div>
+
+  <!-- SCREEN 3: PROPERTY DETAIL -->
+  <div id="screen-prop" class="screen app">
+    <div class="breadcrumb">
+      <a onclick="show('dash')">Portfolio</a>
+      <span>›</span>
+      <span>23 Maple Avenue</span>
+    </div>
+
+    <div class="prop-header">
+      <div class="left">
+        <h2>23 Maple Avenue</h2>
+        <div class="page-sub">Kings Heath, Birmingham, B14 7QP</div>
+        <div class="meta">
+          <div>Landlord<strong>Mrs. P. Sharma</strong></div>
+          <div>Tenant<strong>R. Thompson + 1</strong></div>
+          <div>Tenancy start<strong>14 Mar 2024</strong></div>
+          <div>Monthly rent<strong>£1,150</strong></div>
+        </div>
+      </div>
+      <div style="text-align: center;">
+        <div class="score-circle">
+          <div class="score-inner">
+            <div class="score-num">33</div>
+            <div class="score-lbl">Score</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-family: 'Fraunces', serif; font-size: 18px; font-weight: 500; margin-bottom: 14px;">Compliance items</h3>
+
+    <div class="compliance-grid">
+      <div class="comp-card danger">
+        <div class="comp-info">
+          <h4>Gas Safety Certificate</h4>
+          <div class="expiry bad">⚠ Expired 14 days ago</div>
+        </div>
+        <button class="comp-action" onclick="show('gen')">Generate letter</button>
+      </div>
+      <div class="comp-card amber">
+        <div class="comp-info">
+          <h4>EPC</h4>
+          <div class="expiry warn">Expires in 28 days</div>
+        </div>
+        <button class="comp-action ghost">Schedule renewal</button>
+      </div>
+      <div class="comp-card success">
+        <div class="comp-info">
+          <h4>EICR</h4>
+          <div class="expiry">Valid until Mar 2029</div>
+        </div>
+        <button class="comp-action ghost">View cert</button>
+      </div>
+      <div class="comp-card success">
+        <div class="comp-info">
+          <h4>Deposit Protection</h4>
+          <div class="expiry">DPS · Protected Mar 2024</div>
+        </div>
+        <button class="comp-action ghost">View PI</button>
+      </div>
+      <div class="comp-card success">
+        <div class="comp-info">
+          <h4>Right to Rent</h4>
+          <div class="expiry">Verified · Both tenants</div>
+        </div>
+        <button class="comp-action ghost">View checks</button>
+      </div>
+      <div class="comp-card success">
+        <div class="comp-info">
+          <h4>RRA Info Sheet</h4>
+          <div class="expiry">Issued Mar 2024</div>
+        </div>
+        <button class="comp-action ghost">View document</button>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      The Gas Safety cert just expired · <strong>Generate letter</strong> to see the doc generation flow
+    </div>
+  </div>
+
+  <!-- SCREEN 4: UPLOAD -->
+  <div id="screen-upload" class="screen app">
+    <div class="breadcrumb">
+      <a onclick="show('dash')">Portfolio</a>
+      <span>›</span>
+      <span>New document upload</span>
+    </div>
+
+    <div class="page-head">
+      <div>
+        <div class="page-title">Upload a certificate</div>
+        <div class="page-sub">Drop a PDF · We'll read it · Updates the property automatically</div>
+      </div>
+    </div>
+
+    <div class="upload-zone" id="drop" onclick="startProcessing()">
+      <div class="upload-icon">↑</div>
+      <h3>Drop your PDF here</h3>
+      <p>Or click to browse · Gas Safety, EPC, EICR, RTR check, tenancy agreement</p>
+    </div>
+
+    <div id="processing-block" style="display: none;">
+      <div class="processing-card">
+        <div class="proc-head">
+          <div class="proc-icon">PDF</div>
+          <div>
+            <div class="proc-name">gas_safety_23_maple_avenue.pdf</div>
+            <div class="proc-status"><span class="live-dot"></span><span id="proc-text">Reading document...</span></div>
+          </div>
+        </div>
+
+        <div class="proc-steps">
+          <div class="proc-step" id="step-1"><div class="check">✓</div><div class="label">Detect document type</div><div class="time">0.4s</div></div>
+          <div class="proc-step" id="step-2"><div class="check">✓</div><div class="label">Extract structured fields</div><div class="time">2.1s</div></div>
+          <div class="proc-step" id="step-3"><div class="check">✓</div><div class="label">Match to property record</div><div class="time">0.3s</div></div>
+          <div class="proc-step" id="step-4"><div class="check">✓</div><div class="label">Update compliance status</div><div class="time">0.2s</div></div>
+        </div>
+
+        <div class="extracted" id="extracted">
+          <h4>✓ Extracted — high confidence (97%)</h4>
+          <div class="ext-fields">
+            <div class="ext-field">
+              <label>Document type</label>
+              <div class="val">Gas Safety Certificate (CP12)</div>
+            </div>
+            <div class="ext-field">
+              <label>Property address</label>
+              <div class="val">23 Maple Avenue, B14 7QP</div>
+            </div>
+            <div class="ext-field">
+              <label>Inspection date</label>
+              <div class="val">8 May 2026</div>
+            </div>
+            <div class="ext-field">
+              <label>Next inspection due</label>
+              <div class="val">8 May 2027</div>
+            </div>
+            <div class="ext-field">
+              <label>Engineer name</label>
+              <div class="val">D. McKenzie</div>
+            </div>
+            <div class="ext-field">
+              <label>Gas Safe registration</label>
+              <div class="val">GS-194827</div>
+            </div>
+          </div>
+          <div style="margin-top: 16px; display: flex; gap: 10px;">
+            <button class="btn-primary accent" style="width: auto; padding: 9px 18px; font-size: 12px;" onclick="show('dash')">Confirm and save</button>
+            <button class="btn-secondary" style="padding: 9px 18px; font-size: 12px;">Edit fields</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      <strong>Click the drop zone</strong> to see the AI extraction flow
+    </div>
+  </div>
+
+  <!-- SCREEN 5: DOCUMENT GENERATION -->
+  <div id="screen-gen" class="screen app">
+    <div class="breadcrumb">
+      <a onclick="show('dash')">Portfolio</a>
+      <span>›</span>
+      <a onclick="show('prop')">23 Maple Avenue</a>
+      <span>›</span>
+      <span>Generate document</span>
+    </div>
+
+    <div class="page-head">
+      <div>
+        <div class="page-title">Landlord notification</div>
+        <div class="page-sub">Auto-filled from property data · Review · Send or download</div>
+      </div>
+    </div>
+
+    <div class="gen-layout">
+      <div class="gen-side">
+        <h4>Templates</h4>
+        <div class="gen-list">
+          <div class="gen-item active">
+            <div class="dot red"></div>
+            <div>Expired cert notification</div>
+          </div>
+          <div class="gen-item">
+            <div class="dot amber"></div>
+            <div>Renewal reminder (30 days)</div>
+          </div>
+          <div class="gen-item">
+            <div class="dot green"></div>
+            <div>Prescribed Information (DPS)</div>
+          </div>
+          <div class="gen-item">
+            <div class="dot green"></div>
+            <div>Right to Rent re-check</div>
+          </div>
+          <div class="gen-item">
+            <div class="dot green"></div>
+            <div>Compliance summary email</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="letter-preview">
+        <div class="stamp">DRAFT</div>
+        <h1>Notification of expired Gas Safety Certificate</h1>
+        <div class="date">12 May 2026</div>
+
+        <p><strong>Birmingham Lettings Ltd</strong><br>
+        14 Bristol Road, Selly Oak, Birmingham, B29 6BB</p>
+
+        <p>Dear <span class="highlight">Mrs. P. Sharma</span>,</p>
+
+        <p>This letter is to inform you that the Gas Safety Certificate for your property at <span class="highlight">23 Maple Avenue, B14 7QP</span> expired on <span class="highlight">28 April 2026</span> (14 days ago).</p>
+
+        <p>Under the Gas Safety (Installation and Use) Regulations 1998, you are legally required to maintain a valid Gas Safety Certificate. Failure to renew may result in fines of up to £6,000 per breach and potential criminal prosecution.</p>
+
+        <p><strong>Action required:</strong></p>
+        <p>We recommend booking a Gas Safe registered engineer immediately. We can arrange this on your behalf — typical cost £80–120 — or you may instruct your preferred contractor. Please confirm your preference by <span class="highlight">19 May 2026</span>.</p>
+
+        <p>Once the renewal is complete, the certificate will be filed in your Complio compliance record and a copy will be issued to the tenant within 28 days as required.</p>
+
+        <p>Kind regards,<br>
+        <strong>S. Patel</strong><br>
+        Birmingham Lettings · <em>s.patel@birminghamlettings.co.uk</em></p>
+
+        <p style="font-size: 10px; color: var(--text-muted); margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
+          <em>Template provided for guidance — verify before sending. Complio does not provide legal advice.</em>
+        </p>
+
+        <div class="letter-actions">
+          <button class="btn-primary accent" style="width: auto;">Send to landlord</button>
+          <button class="btn-secondary">Download PDF</button>
+          <button class="btn-secondary">Edit template</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 6: LANDLORD REPORT -->
+  <div id="screen-ll" class="screen app">
+    <div class="page-head">
+      <div>
+        <div class="page-title">Landlord reports</div>
+        <div class="page-sub">Send compliance summaries · Track delivery · Keep landlords informed</div>
+      </div>
+    </div>
+
+    <div class="ll-layout">
+      <div class="ll-list">
+        <div class="ll-item active">
+          <div class="ll-name">Mrs. P. Sharma</div>
+          <div class="ll-meta">2 properties · Action needed</div>
+        </div>
+        <div class="ll-item">
+          <div class="ll-name">Mr. R. Patel</div>
+          <div class="ll-meta">3 properties · Expiring soon</div>
+        </div>
+        <div class="ll-item">
+          <div class="ll-name">Cromwell Holdings Ltd</div>
+          <div class="ll-meta">8 properties · Action needed</div>
+        </div>
+        <div class="ll-item">
+          <div class="ll-name">Mr. &amp; Mrs. Khan</div>
+          <div class="ll-meta">4 properties · All clear</div>
+        </div>
+        <div class="ll-item">
+          <div class="ll-name">Mr. J. Williams</div>
+          <div class="ll-meta">2 properties · All clear</div>
+        </div>
+        <div class="ll-item">
+          <div class="ll-name">Mr. A. Ahmed</div>
+          <div class="ll-meta">1 property · Expiring soon</div>
+        </div>
+        <div class="ll-item">
+          <div class="ll-name">Hawthorne Estates</div>
+          <div class="ll-meta">12 properties · Mostly clear</div>
+        </div>
+      </div>
+
+      <div class="ll-detail">
+        <div class="ll-summary">
+          <div>
+            <div class="ll-name-big">Mrs. P. Sharma</div>
+            <div class="ll-name-sub">2 managed properties · Client since March 2024</div>
+            <div class="ll-status-summary">
+              <span class="ll-status-pill action">1 needs action</span>
+              <span class="ll-status-pill clear">1 all clear</span>
+            </div>
+          </div>
+          <button class="btn-primary accent" style="width: auto;">Generate report email</button>
+        </div>
+
+        <div class="ll-prop-list">
+          <div class="ll-prop">
+            <div>
+              <div class="ll-prop-addr">23 Maple Avenue, B14 7QP</div>
+              <div class="ll-prop-sub">Tenant since Mar 2024 · £1,150/mo</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <div class="status-row">
+                <div class="dot red"></div>
+                <div class="dot amber"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+              </div>
+              <span class="urgency-badge high">Gas expired</span>
+            </div>
+          </div>
+          <div class="ll-prop">
+            <div>
+              <div class="ll-prop-addr">47 Wake Green Road, B13 9PA</div>
+              <div class="ll-prop-sub">Tenant since Aug 2023 · £1,400/mo</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <div class="status-row">
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+                <div class="dot green"></div>
+              </div>
+              <span class="urgency-badge low">All clear</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="send-block">
+          <div class="last-sent">
+            Last report sent
+            <strong>4 weeks ago · 14 Apr 2026</strong>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button class="btn-secondary">View send history</button>
+            <button class="btn-primary" style="width: auto;">Preview email</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ----- Florida vs UK content -----
+  const ukData = {
+    agency: 'Birmingham Lettings',
+    badge: 'Birmingham Lettings · 87 properties',
+    certs: 'Gas · EPC · EICR · DPS · RTR · RRA',
+    dashSub: 'Updated 4 minutes ago · 6 cert types tracked · Across 87 properties',
+  };
+  const flData = {
+    agency: 'Orlando Premier Realty',
+    badge: 'Orlando Premier Realty · 64 properties',
+    certs: 'Lead Paint · Smoke · License · Escrow · Hurricane · ID Verify',
+    dashSub: 'Updated 6 minutes ago · 6 compliance items · Across 64 Orlando-area properties',
+  };
+
+  function setMode(mode, btn) {
+    document.querySelectorAll('.mode-toggle button').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const d = mode === 'fl' ? flData : ukData;
+    document.getElementById('login-agency').textContent = d.agency;
+    document.getElementById('agency-badge').textContent = d.badge;
+    document.getElementById('cert-headers').textContent = d.certs;
+    document.getElementById('dash-sub').textContent = d.dashSub;
+  }
+
+  // ----- Screen switching -----
+  const screens = ['login', 'dash', 'prop', 'upload', 'gen', 'll'];
+  function show(name) {
+    screens.forEach(s => {
+      document.getElementById('screen-' + s).classList.remove('active');
+      const btn = document.getElementById('b-' + s);
+      if (btn) btn.classList.remove('active');
+    });
+    document.getElementById('screen-' + name).classList.add('active');
+    const btn = document.getElementById('b-' + name);
+    if (btn) btn.classList.add('active');
+
+    // Hide app chrome on login screen
+    const appWrap = document.getElementById('app-wrap');
+    if (name === 'login') appWrap.style.display = 'none';
+    else appWrap.style.display = '';
+
+    // Reset upload state when leaving
+    if (name !== 'upload') resetUpload();
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function openProp() {
+    show('prop');
+  }
+
+  // ----- Upload processing animation -----
+  let processingTimer = null;
+  function resetUpload() {
+    document.getElementById('processing-block').style.display = 'none';
+    document.getElementById('extracted').classList.remove('visible');
+    ['step-1', 'step-2', 'step-3', 'step-4'].forEach(id => {
+      document.getElementById(id).classList.remove('done', 'active');
+    });
+    if (processingTimer) clearTimeout(processingTimer);
+  }
+
+  function startProcessing() {
+    resetUpload();
+    document.getElementById('processing-block').style.display = 'block';
+    document.getElementById('drop').style.display = 'none';
+
+    const steps = ['step-1', 'step-2', 'step-3', 'step-4'];
+    const stepTexts = [
+      'Detecting document type...',
+      'Extracting fields with AI...',
+      'Matching to your portfolio...',
+      'Updating compliance status...',
+    ];
+    const procText = document.getElementById('proc-text');
+
+    let i = 0;
+    function nextStep() {
+      if (i > 0) {
+        document.getElementById(steps[i-1]).classList.remove('active');
+        document.getElementById(steps[i-1]).classList.add('done');
+      }
+      if (i < steps.length) {
+        document.getElementById(steps[i]).classList.add('active');
+        procText.textContent = stepTexts[i];
+        i++;
+        processingTimer = setTimeout(nextStep, 900);
+      } else {
+        procText.textContent = 'Complete — confirm extracted data below';
+        document.getElementById('extracted').classList.add('visible');
+        document.getElementById('drop').style.display = '';
+        document.getElementById('drop').style.opacity = '0.5';
+      }
+    }
+    nextStep();
+  }
+
+  // ----- Drag-drop visual feedback -----
+  const drop = document.getElementById('drop');
+  ['dragenter', 'dragover'].forEach(evt => {
+    drop.addEventListener(evt, e => { e.preventDefault(); drop.classList.add('dragover'); });
+  });
+  ['dragleave', 'drop'].forEach(evt => {
+    drop.addEventListener(evt, e => { e.preventDefault(); drop.classList.remove('dragover'); });
+  });
+  drop.addEventListener('drop', startProcessing);
+
+  // ----- Initial state -----
+  show('dash');
+</script>
+
+</body>
+</html>
