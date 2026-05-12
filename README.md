@@ -1,2 +1,2 @@
-# complio.uk
-A uk based ai compliance software that can save agencies upto 30k pounds each year
+#Complio.UK
+A compliance OS for independent UK letting agents. Track every deadline, generate each report and never miss a fine 
